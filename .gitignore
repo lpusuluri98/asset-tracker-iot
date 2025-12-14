@@ -1,0 +1,43 @@
+# --- General System Files ---
+.DS_Store
+Thumbs.db
+.vscode/
+
+# --- Firmware (PlatformIO) ---
+# Ignore the build output directories
+.pio/
+.bio/
+
+# Ignore compiled binaries and objects
+**/*.bin
+**/*.elf
+**/*.o
+**/*.a
+**/*.hex
+
+# --- Dashboard (React Native / Node) ---
+# Dependencies (Heavy - Do NOT upload)
+node_modules/
+
+# Build outputs (Temporary)
+build/
+dist/
+web-build/
+.expo/
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# --- Security ---
+# Never upload environment variables/secrets
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Helper files often containing Wi-Fi passwords/Keys
+secrets.h
+**/*secrets.h
