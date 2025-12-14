@@ -1,61 +1,119 @@
-📡 IoT Asset Tracking System (RTOS & Cloud Integration)
+# 📡 IoT Asset Tracking System (RTOS & Cloud Integration)
+
 A full-stack IoT solution demonstrating real-time asset tracking using FreeRTOS, ESP32, and AWS Serverless Architecture.
 
-📖 Project Overview
-This project implements a scalable "Edge-to-Cloud" architecture for tracking Bluetooth Low Energy (BLE) assets in real-time. It was designed to demonstrate core competencies in embedded systems engineering, specifically focusing on concurrency, memory safety, and remote device management.
+---
 
-The system consists of distributed ESP32 scanners running a custom FreeRTOS firmware that triangulates asset locations and reports telemetry to an AWS backend. The architecture mimics commercial IoT deployments by decoupling the hardware logic from the cloud application layer.
+## 📖 Project Overview
 
-🏗 System Architecture
+This project implements a scalable **Edge-to-Cloud** architecture for tracking Bluetooth Low Energy (BLE) assets in real time. It was designed to demonstrate core competencies in embedded systems engineering, with a focus on concurrency, memory safety, and remote device management.
+
+The system consists of distributed ESP32 scanners running custom FreeRTOS firmware that triangulates asset locations and reports telemetry to an AWS backend. The architecture mirrors commercial IoT deployments by decoupling hardware logic from the cloud application layer.
+
+---
+
+## 🏗 System Architecture
+
+
 [ BLE Asset ] ➔ [ ESP32 Scanner (FreeRTOS) ] ➔ [ AWS IoT Core ] ➔ [ AWS Lambda (Python) ] ➔ [ DynamoDB ] ➔ [ React Dashboard ]
 
-💻 Technical Implementation
-Embedded Firmware (C++ & FreeRTOS)
-The core of the project is the multi-threaded firmware running on the ESP32. It moves beyond the standard "super-loop" architecture to handle asynchronous tasks deterministically.
 
-Task Management: Implemented separate FreeRTOS tasks for BLE Scanning, MQTT Communication, and Sensor Processing.
+---
 
-Concurrency Control: utilized Mutexes (Semaphores) to protect shared resources (global configuration and sensor data) from race conditions between the network stack and the sensor loop.
+## 💻 Technical Implementation
 
-Memory Management: Implemented "Deep Copy" logic and strict buffer management to prevent dangling pointers when handling asynchronous JSON callbacks.
+### Embedded Firmware (C++ and FreeRTOS)
 
-Protocols: * BLE: Active scanning for specific Service UUIDs.
+The core of the project is multi-threaded firmware running on the ESP32. It moves beyond the traditional super-loop architecture to handle asynchronous tasks deterministically.
 
-MQTT: bidirectional communication for telemetry (Pub) and configuration (Sub).
+- **Task Management**  
+  Separate FreeRTOS tasks for:
+  - BLE Scanning  
+  - MQTT Communication  
+  - Sensor Processing  
 
-Cloud & Backend (Python & AWS)
-The backend is a serverless event-driven architecture designed to handle variable loads without provisioning servers.
+- **Concurrency Control**  
+  Mutexes (semaphores) protect shared resources such as global configuration and sensor data, preventing race conditions between the network stack and the sensor loop.
 
-Device Shadows: Implemented the AWS Shadow pattern for Remote Configuration. This allows the scanner's target UUID to be updated over-the-air (OTA) without reflashing the device.
+- **Memory Management**  
+  Deep copy logic and strict buffer ownership rules prevent dangling pointers during asynchronous JSON callbacks.
 
-Topic Injection: utilized AWS IoT Rules Engine to inject location context (Room ID) into data packets based on the MQTT topic, enabling "Zero-Touch Provisioning" of hardware.
+- **Protocols**
+  - **BLE**: Active scanning for specific Service UUIDs  
+  - **MQTT**: Bidirectional communication for telemetry (publish) and configuration (subscribe)
 
-Compute: Python Lambda functions parse incoming binary payloads, normalize data, and manage state persistence in DynamoDB.
+---
 
-⚙️ Key Engineering Challenges Solved
-1. The "Race Condition" in Dual-Core Processing
-Problem: The ESP32's dual-core architecture meant the WiFi/MQTT task (Core 1) could attempt to update the configuration string while the BLE task (Core 0) was reading it, leading to potential memory corruption. Solution: Architected a thread-safe data exchange using xSemaphoreTake to lock shared memory during read/write operations, ensuring atomic updates.
+### Cloud and Backend (Python and AWS)
 
-2. Stateless Logic in the Cloud
-Problem: Determining "Location" based on signal strength (RSSI) from multiple scanners without persistent server memory. Solution: Implemented a "Last Write Wins" strategy with timestamp validation in DynamoDB, utilizing Conditional Writes to reject stale data packets effectively.
+The backend is a serverless, event-driven architecture designed to scale automatically under variable load.
 
-3. Dynamic Hardware Configuration
-Problem: Hardcoding Asset IDs in firmware limits scalability and requires physical access for updates. Solution: Integrated the AWS Device Shadow service. The firmware subscribes to the /delta topic, parses incoming JSON configuration changes, applies them to local memory, and reports the new state back to the cloud, confirming synchronization.
+- **Device Shadows**  
+  Implemented AWS IoT Device Shadows for remote configuration. Scanner target UUIDs can be updated over the air without reflashing firmware.
 
-🛠 Technology Stack
-Hardware: ESP32, PIR Sensors, BLE Beacons
+- **Topic Injection**  
+  AWS IoT Rules Engine injects location context such as Room ID into data packets based on MQTT topics, enabling zero-touch provisioning of hardware.
 
-Firmware: C++, FreeRTOS, Arduino framework
+- **Compute**  
+  Python-based AWS Lambda functions parse incoming binary payloads, normalize data, and persist state in DynamoDB.
 
-Cloud: AWS IoT Core, Lambda, DynamoDB, API Gateway, S3
+---
 
-Languages: C++, Python, JavaScript (React)
+## ⚙️ Key Engineering Challenges Solved
 
-🚀 Setup & Usage
-Firmware: Configure secrets.h with WiFi/AWS credentials and flash the ESP32.
+### 1. Race Conditions in Dual-Core Processing
 
-Cloud: Deploy the AWS resources (IoT Thing, Lambda, DynamoDB).
+**Problem**  
+The ESP32 dual-core architecture allows the WiFi and MQTT task on Core 1 to update configuration data while the BLE task on Core 0 is reading it, risking memory corruption.
 
-Operation: The device will automatically connect, retrieve its configuration from the Device Shadow, and begin scanning.
+**Solution**  
+Implemented thread-safe access using `xSemaphoreTake` and `xSemaphoreGive` to lock shared memory during read and write operations, ensuring atomic updates.
 
-Monitoring: View real-time location updates on the hosted React dashboard.
+---
+
+### 2. Stateless Logic in the Cloud
+
+**Problem**  
+Determining asset location using RSSI data from multiple scanners without maintaining server-side state.
+
+**Solution**  
+Implemented a last-write-wins strategy with timestamp validation in DynamoDB. Conditional writes reject stale updates, ensuring only the most recent location is stored.
+
+---
+
+### 3. Dynamic Hardware Configuration
+
+**Problem**  
+Hardcoding asset identifiers in firmware limits scalability and requires physical access for updates.
+
+**Solution**  
+Integrated AWS Device Shadows. The firmware subscribes to the `/delta` topic, applies incoming JSON configuration changes to local memory, and reports the updated state back to the cloud for confirmation.
+
+---
+
+## 🛠 Technology Stack
+
+- **Hardware**: ESP32, PIR Sensors, BLE Beacons  
+- **Firmware**: C++, FreeRTOS, Arduino Framework  
+- **Cloud**: AWS IoT Core, Lambda, DynamoDB, API Gateway, S3  
+- **Languages**: C++, Python, JavaScript (React)
+
+---
+
+## 🚀 Setup and Usage
+
+- **Firmware**  
+  Configure `secrets.h` with WiFi and AWS credentials, then flash the ESP32.
+
+- **Cloud**  
+  Deploy AWS resources including IoT Thing, Lambda functions, and DynamoDB tables.
+
+- **Operation**  
+  The device automatically connects to AWS IoT Core, retrieves configuration from the Device Shadow, and begins scanning.
+
+- **Monitoring**  
+  View real-time asset location updates on the hosted React dashboard.
+
+---
+
+Created by **[Anirudh Pusuluri]**
