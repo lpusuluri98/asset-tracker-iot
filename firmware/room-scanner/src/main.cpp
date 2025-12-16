@@ -11,6 +11,7 @@
 
 #define PIR_PIN 13
 #define UUID_LENGTH 36
+#define ROOM_NAME_LENGTH 20
 #define BLE_SCAN_DURATION 5
 #define BLE_SCAN_INTERVAL 2000
 #define BLE_SCAN_WINDOW 500
@@ -23,6 +24,7 @@ void vMqttTask(void* pvParameters);
 
 static SemaphoreHandle_t scannerMutex;
 static SemaphoreHandle_t uuidMutex;
+static SemaphoreHandle_t roomMutex;
 
 struct ScannerData {
   bool motionDetected = false;
@@ -35,6 +37,7 @@ StaticJsonDocument<600> uuid_payload;
 WiFiClientSecure net;
 PubSubClient mqttClient(net);
 char targetUUID[UUID_LENGTH + 1] = {0};
+char roomName[ROOM_NAME_LENGTH + 1] = {0};
 bool firstRun = true;
 unsigned long lastPublishTime = 0;
 TaskHandle_t bleTaskHandle = NULL;
@@ -152,15 +155,30 @@ void vBLEScanTask(void *pvParameters) {
 
 void mqttCallback(char* topic, byte* payload, unsigned int length) {
   const char* newUUID = NULL;
+  const char* newRooom = NULL;
   if(strcmp(topic, SHADOW_GET_ACCEPTED_TOPIC) == 0) {
     deserializeJson(uuid_payload, payload, length);
     newUUID = uuid_payload["state"]["desired"]["targetUUID"];
+    newRooom = uuid_payload["state"]["desired"]["roomName"];
   }
   else if(strcmp(topic, SHADOW_DELTA_TOPIC) == 0) {
     deserializeJson(uuid_payload, payload, length);
+    //To do: Handle if no targetUUID or roomName is set in the delta
     newUUID = uuid_payload["state"]["targetUUID"];
+    newRooom = uuid_payload["state"]["roomName"];
   }
-  
+  if(newRooom){
+    if(xSemaphoreTake(roomMutex, pdMS_TO_TICKS(1000)) == pdTRUE) {
+      strncpy(roomName, newRooom, ROOM_NAME_LENGTH);
+      roomName[ROOM_NAME_LENGTH] = '\0';
+      xSemaphoreGive(roomMutex);
+    }
+    if(roomName[0] != '\0') {
+    Serial.print("Room name updated: ");
+    Serial.println(roomName);
+    }
+  }
+
   if(newUUID){
     if(xSemaphoreTake(uuidMutex, pdMS_TO_TICKS(1000)) == pdTRUE) {
       strncpy(targetUUID, newUUID, UUID_LENGTH);
@@ -177,7 +195,7 @@ void mqttCallback(char* topic, byte* payload, unsigned int length) {
   }
   
   char message[128];
-  snprintf(message, sizeof(message), "{\"state\":{\"reported\":{\"targetUUID\":\"%s\"}}}", targetUUID);
+  snprintf(message, sizeof(message), "{\"state\":{\"reported\":{\"targetUUID\":\"%s\",\"roomName\":\"%s\"}}}", targetUUID, roomName);
   mqttClient.publish(SHADOW_UPDATE_TOPIC, message);
 }
 
@@ -248,7 +266,10 @@ void vMqttTask(void* pvParameters) {
       
       char buffer[128];
       serializeJson(payload, buffer, sizeof(buffer));
-      mqttClient.publish("iot/livingroom/data", buffer);
+      char topic[128] = "iot/";
+      strncat(topic, roomName, sizeof(topic) - strlen(topic) - 1);
+      strncat(topic, "/data", sizeof(topic) - strlen(topic) - 1);
+      mqttClient.publish(topic, buffer);
       lastPublishTime = now;
     }
     
