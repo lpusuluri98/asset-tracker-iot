@@ -16,6 +16,7 @@
 #define BLE_SCAN_INTERVAL 2000
 #define BLE_SCAN_WINDOW 500
 #define MQTT_PUBLISH_INTERVAL 10000
+#define SCANNER "Scanner_01"
 
 void vBLEScanTask(void *pvParameters);
 void vPIRTask(void *pvParameters);
@@ -50,8 +51,9 @@ void setup() {
   
   scannerMutex = xSemaphoreCreateMutex();
   uuidMutex = xSemaphoreCreateMutex();
+  roomMutex = xSemaphoreCreateMutex();
   
-  if (scannerMutex == NULL || uuidMutex == NULL) {
+  if (scannerMutex == NULL || uuidMutex == NULL || roomMutex == NULL) {
     Serial.println("ERROR: Failed to create semaphores");
     while(1) vTaskDelay(1000 / portTICK_PERIOD_MS);
   }
@@ -136,7 +138,7 @@ class MyAdvertisedDeviceCallbacks : public BLEAdvertisedDeviceCallbacks {
 };
 
 void vBLEScanTask(void *pvParameters) {
-  BLEDevice::init("Scanner_02");
+  BLEDevice::init(SCANNER);
   BLEScan* pBLEScan = BLEDevice::getScan();
   MyAdvertisedDeviceCallbacks callback;
   pBLEScan->setAdvertisedDeviceCallbacks(&callback);
@@ -202,6 +204,7 @@ void mqttCallback(char* topic, byte* payload, unsigned int length) {
 
 void vMqttTask(void* pvParameters) {
   char currentTarget[UUID_LENGTH + 1] = {0};
+  char currentRoom[ROOM_NAME_LENGTH + 1] = {0};
   
   Serial.println("Connecting to WiFi...");
   WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
@@ -225,7 +228,7 @@ void vMqttTask(void* pvParameters) {
     }
     
     if(!mqttClient.connected()) {
-      if(!mqttClient.connect("Scanner_02")) {
+      if(!mqttClient.connect(SCANNER)) {
         Serial.println("MQTT connection failed");
         vTaskDelay(2000 / portTICK_PERIOD_MS);
         continue;
@@ -258,6 +261,11 @@ void vMqttTask(void* pvParameters) {
         currentTarget[UUID_LENGTH] = '\0';
         xSemaphoreGive(uuidMutex);
       }
+      if(xSemaphoreTake(roomMutex, pdMS_TO_TICKS(1000)) == pdTRUE) {
+        strncpy(currentRoom, roomName, ROOM_NAME_LENGTH);
+        currentRoom[ROOM_NAME_LENGTH] = '\0';
+        xSemaphoreGive(roomMutex);
+      }
       
       payload.clear();
       payload["assetID"] = currentTarget;
@@ -267,8 +275,10 @@ void vMqttTask(void* pvParameters) {
       char buffer[128];
       serializeJson(payload, buffer, sizeof(buffer));
       char topic[128] = "iot/";
-      strncat(topic, roomName, sizeof(topic) - strlen(topic) - 1);
-      strncat(topic, "/data", sizeof(topic) - strlen(topic) - 1);
+      if(currentRoom[0] == '\0') {
+        strcpy(currentRoom, "office");
+      }
+      snprintf(topic, sizeof(topic), "iot/%s/data", currentRoom);
       mqttClient.publish(topic, buffer);
       lastPublishTime = now;
     }
