@@ -16,7 +16,7 @@
 #define BLE_SCAN_INTERVAL 2000
 #define BLE_SCAN_WINDOW 500
 #define MQTT_PUBLISH_INTERVAL 10000
-#define SCANNER "Scanner_01"
+#define SCANNER "Scanner_02"
 
 void vBLEScanTask(void *pvParameters);
 void vPIRTask(void *pvParameters);
