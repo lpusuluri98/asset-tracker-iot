@@ -224,6 +224,7 @@ void vMqttTask(void* pvParameters) {
     if(WiFi.status() != WL_CONNECTED) {
       WiFi.reconnect();
       vTaskDelay(2000 / portTICK_PERIOD_MS);
+      firstRun = true;
       continue;
     }
     
@@ -236,6 +237,7 @@ void vMqttTask(void* pvParameters) {
       Serial.println("MQTT connected");
       mqttClient.subscribe(SHADOW_GET_ACCEPTED_TOPIC);
       mqttClient.subscribe(SHADOW_DELTA_TOPIC);
+      firstRun = true;
     }
     
     mqttClient.loop();
