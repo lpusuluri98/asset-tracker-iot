@@ -34,7 +34,7 @@ struct ScannerData {
 
 static ScannerData scannerData;
 StaticJsonDocument<50> payload;
-StaticJsonDocument<600> uuid_payload;
+StaticJsonDocument<1024> uuid_payload;
 WiFiClientSecure net;
 PubSubClient mqttClient(net);
 char targetUUID[UUID_LENGTH + 1] = {0};
@@ -62,6 +62,7 @@ void setup() {
   net.setCertificate(AWS_CERT_CRT);
   net.setPrivateKey(AWS_CERT_PRIVATE);
   mqttClient.setClient(net);
+  mqttClient.setBufferSize(4096);
   pinMode(PIR_PIN, INPUT);
   
   if (xTaskCreatePinnedToCore(vBLEScanTask, "BLE Scan Task", 2248, NULL, 1, &bleTaskHandle, 0) != pdPASS) {
@@ -138,6 +139,12 @@ class MyAdvertisedDeviceCallbacks : public BLEAdvertisedDeviceCallbacks {
 };
 
 void vBLEScanTask(void *pvParameters) {
+  Serial.println("Starting BLE scan task");
+  
+  // Wait for MQTT connection before initializing BLE to conserve memory
+  ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
+  Serial.println("MQTT connected, initializing BLE...");
+  
   BLEDevice::init(SCANNER);
   BLEScan* pBLEScan = BLEDevice::getScan();
   MyAdvertisedDeviceCallbacks callback;
@@ -145,8 +152,6 @@ void vBLEScanTask(void *pvParameters) {
   pBLEScan->setActiveScan(true);
   pBLEScan->setInterval(BLE_SCAN_INTERVAL);
   pBLEScan->setWindow(BLE_SCAN_WINDOW);
-  
-  ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
   
   for(;;){
     pBLEScan->start(BLE_SCAN_DURATION, false);
@@ -156,22 +161,67 @@ void vBLEScanTask(void *pvParameters) {
 }
 
 void mqttCallback(char* topic, byte* payload, unsigned int length) {
+  Serial.println("");
+  Serial.print(">>> MQTT CALLBACK TRIGGERED! Topic: ");
+  Serial.println(topic);
+  Serial.print("Payload length: ");
+  Serial.println(length);
+  
+  // Print raw payload
+  // Serial.print("Raw Payload: ");
+  // for (unsigned int i = 0; i < length; i++) {
+  //   Serial.print((char)payload[i]);
+  // }
+  // Serial.println("");
+
+  // Deserialize JSON once
+  DeserializationError error = deserializeJson(uuid_payload, payload, length);
+  
+  if (error) {
+    Serial.print("deserializeJson() failed: ");
+    Serial.println(error.c_str());
+    return;
+  }
+
+  Serial.println("Parsed JSON successfully:");
+  serializeJsonPretty(uuid_payload, Serial);
+  
   const char* newUUID = NULL;
-  const char* newRooom = NULL;
+  const char* newRoom = NULL;
+  
   if(strcmp(topic, SHADOW_GET_ACCEPTED_TOPIC) == 0) {
-    deserializeJson(uuid_payload, payload, length);
-    newUUID = uuid_payload["state"]["desired"]["targetUUID"];
-    newRooom = uuid_payload["state"]["desired"]["roomName"];
+    Serial.println("Processing SHADOW_GET_ACCEPTED_TOPIC");
+    if(uuid_payload["state"]["desired"].containsKey("targetUUID")) {
+      newUUID = uuid_payload["state"]["desired"]["targetUUID"];
+    }
+    if(uuid_payload["state"]["desired"].containsKey("roomName")) {
+      newRoom = uuid_payload["state"]["desired"]["roomName"];
+    }
   }
   else if(strcmp(topic, SHADOW_DELTA_TOPIC) == 0) {
-    deserializeJson(uuid_payload, payload, length);
-    //To do: Handle if no targetUUID or roomName is set in the delta
-    newUUID = uuid_payload["state"]["targetUUID"];
-    newRooom = uuid_payload["state"]["roomName"];
+    Serial.println("Processing SHADOW_DELTA_TOPIC");
+    if(uuid_payload["state"].containsKey("targetUUID")) {
+      newUUID = uuid_payload["state"]["targetUUID"];
+    }
+    if(uuid_payload["state"].containsKey("roomName")) {
+      newRoom = uuid_payload["state"]["roomName"];
+    }
   }
-  if(newRooom){
+  else {
+    Serial.print("Unknown topic received: ");
+    Serial.println(topic);
+    return;
+  }
+  
+  // Only process if we got actual updates
+  if(newRoom == NULL && newUUID == NULL) {
+    Serial.println("No targetUUID or roomName in delta, ignoring");
+    return;
+  }
+
+  if(newRoom){
     if(xSemaphoreTake(roomMutex, pdMS_TO_TICKS(1000)) == pdTRUE) {
-      strncpy(roomName, newRooom, ROOM_NAME_LENGTH);
+      strncpy(roomName, newRoom, ROOM_NAME_LENGTH);
       roomName[ROOM_NAME_LENGTH] = '\0';
       xSemaphoreGive(roomMutex);
     }
@@ -215,9 +265,11 @@ void vMqttTask(void* pvParameters) {
     timeout++;
   }
   Serial.println("WiFi connected");
-  
+  mqttClient.setBufferSize(2048);
+
   mqttClient.setServer(MQTT_HOST, 8883);
   mqttClient.setCallback(mqttCallback);
+  Serial.println("MQTT Callback registered");
   vTaskDelay(1000 / portTICK_PERIOD_MS);
   
   for(;;){
@@ -229,25 +281,43 @@ void vMqttTask(void* pvParameters) {
     }
     
     if(!mqttClient.connected()) {
-      if(!mqttClient.connect(SCANNER)) {
+      Serial.println("Attempting MQTT connection...");
+      
+      // Set a connection timeout of 5 seconds
+      net.setTimeout(5000);
+      
+      bool connectResult = mqttClient.connect(SCANNER);
+      
+      if(!connectResult) {
         Serial.println("MQTT connection failed");
         vTaskDelay(2000 / portTICK_PERIOD_MS);
         continue;
       }
-      Serial.println("MQTT connected");
+      Serial.println("MQTT connected successfully");
+      
+      // Subscribe to shadow topics
       mqttClient.subscribe(SHADOW_GET_ACCEPTED_TOPIC);
       mqttClient.subscribe(SHADOW_DELTA_TOPIC);
+      
+      // Call loop to process subscriptions
+      for(int i = 0; i < 5; i++) {
+        mqttClient.loop();
+        vTaskDelay(100 / portTICK_PERIOD_MS);
+      }
       firstRun = true;
     }
     
+    // Call loop frequently to receive messages
     mqttClient.loop();
     
     unsigned long now = millis();
-    if(firstRun) {
+    if(firstRun && mqttClient.connected()) {
+      Serial.println("Publishing SHADOW_GET_TOPIC request...");
       mqttClient.publish(SHADOW_GET_TOPIC, "{}");
       firstRun = false;
     }
     
+    mqttClient.loop();
     if(now - lastPublishTime > MQTT_PUBLISH_INTERVAL) {
       int rssi = -100;
       bool motion = false;
