@@ -1,9 +1,14 @@
-import './App.css';
-import { useState, useEffect } from 'react';
-import StatCard from './StatCard';
-import MotionSensor from './MotionSensor';
-import ScannerConfig from './ScannerConfig';
-const API_URL = "https://wfuicwwfs2.execute-api.us-east-2.amazonaws.com";
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import Dashboard from './pages/Dashboard';
+import AssetManager from './pages/AssetManager';
+import Navbar from './components/Navbar';
+
+// import './App.css';
+// import { useState, useEffect } from 'react';
+// import StatCard from './StatCard';
+// import MotionSensor from './components/MotionSensor';
+// import ScannerConfig from './ScannerConfig';
+// const API_URL = "https://wfuicwwfs2.execute-api.us-east-2.amazonaws.com";
 
 function App() {
   const [roomStatus, setRoomStatus] = useState('No Motion');
@@ -33,30 +38,13 @@ function App() {
   }, []);
 
   return (
-    <div className="App">
-      <h1>IoT Asset Tracker</h1>
-
-      {/* 1. Dashboard View */}
-      <div className="metrics" style={{
-        display: 'flex', 
-        justifyContent: 'center',
-        gap: '20px', 
-        marginBottom: '40px'}}>
-        <StatCard title="Office Motion" value={roomStatus} color = {roomStatus == "Motion Detected"? 'red':'blue'} />
-        <StatCard title="Asset 1 Signal" value={assetLocation} />
-        {/* <button onClick={()=>{setRoomStatus(roomStatus === 'No Motion' ? 'Motion Detected' : 'No Motion')}}>Toggle Motion Status</button> */}
-        {/* <button onClick={()=>{setAssetLocation(assetLocation === "Searching..." ? "Located at (12.34, 56.78)" : "Searching...")}}>Toggle Asset Location</button> */}
-        {/* <MotionSensor /> */}
-      </div>
-      {/* 2. The Control Panel (Imported Component) */}
-      <div style={{
-        maxWidth: '800px',
-        margin: '0 auto',
-      }}>
-        <ScannerConfig apiUrl={API_URL} />
-      </div>
-
-    </div>
+    <BrowserRouter>
+    <Navbar />
+      <Routes>
+        <Route path="/" element={<Dashboard />} />
+        <Route path="/assets" element={<AssetManager />} />
+      </Routes>
+    </BrowserRouter>
   );
 }
 
