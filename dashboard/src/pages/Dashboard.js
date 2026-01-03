@@ -1,8 +1,8 @@
-import './App.css';
+import '../App.css';
 import { useState, useEffect } from 'react';
-import StatCard from './components/StatCard';
-import MotionSensor from './components/MotionSensor';
-import ScannerConfig from './components/ScannerConfig';
+import StatCard from '../components/StatCard';
+import MotionSensor from '../components/MotionSensor';
+import ScannerConfig from '../components/ScannerConfig';
 const API_URL = "https://wfuicwwfs2.execute-api.us-east-2.amazonaws.com";
 
 function Dashboard() {
