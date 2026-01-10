@@ -1,0 +1,1 @@
+export const API_URL = "https://wfuicwwfs2.execute-api.us-east-2.amazonaws.com";

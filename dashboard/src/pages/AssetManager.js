@@ -1,9 +1,7 @@
 import { useState, useEffect } from "react";
+import { API_URL } from "../config";
 
-const API_URL = "https://wfuicwwfs2.execute-api.us-east-2.amazonaws.com";
-
-function AssetManager() {
-    const [assets, setAssets] = useState([]);
+function AssetManager({assets, setAssets}) {
     const [uuidInput, setUuidInput] = useState('');
     const [nameInput, setNameInput] = useState('');
     
@@ -26,7 +24,21 @@ function AssetManager() {
         })
         .then(response => {
             if(response.ok){
-                setAssets([...assets, payload]); 
+                // setAssets(prevAssets => 
+                //         prevAssets.some(item => item.AssetUUID === payload.AssetUUID)
+                //             ? prevAssets.map((asset) => asset.AssetUUID === payload.AssetUUID ? payload : asset)
+                //             : [...prevAssets, payload]
+                //     );
+                setAssets(prevAssets => {
+                    const existingIndex = prevAssets.findIndex(asset => asset.AssetUUID === payload.AssetUUID);
+                    if(existingIndex >= 0){
+                        const newList = [...prevAssets];
+                        newList[existingIndex] = payload;
+                        return newList;
+                    } else {
+                        return [...prevAssets, payload];
+                    }
+                }); 
                 setUuidInput(''); 
                 setNameInput('');}
             else {
@@ -50,7 +62,7 @@ function AssetManager() {
                     value={nameInput}
                     onChange={(e) => setNameInput(e.target.value)}
                 />
-                <button onClick={handleAddAsset}>Add Asset</button>
+                <button className="btn btn-secondary" onClick={handleAddAsset}>Add Asset</button>
             </div>
             {/*List View of Assets*/}
             <ul>
