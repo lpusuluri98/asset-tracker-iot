@@ -83,7 +83,11 @@ function AssetManager({ assets, setAssets }) {
       <ul className="list-group" style={{ maxWidth: "24%" }}>
         {assets.map((asset, index) => (
           <li key={index} className="card">
-            <div className="card-header">{asset.FriendlyName}</div>
+            <div className="card-header">
+              <h5>
+                <strong>{asset.FriendlyName}</strong>
+              </h5>
+            </div>
             <p className="card-body">
               <strong>Asset UUID:</strong> {asset.AssetUUID}
             </p>

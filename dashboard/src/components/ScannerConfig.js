@@ -121,6 +121,7 @@ function ScannerConfig({ apiUrl, assets }) {
               value={targetUUID}
               onChange={(e) => setTargetUUID(e.target.value)}
               style={inputStyle}
+              className="form-select"
             >
               <option value="">-- Select Asset UUID --</option>
               {assets.map((asset) => (
