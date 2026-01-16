@@ -54,89 +54,163 @@ function ScannerConfig({ apiUrl, assets }) {
     }
   }
   return (
-    <div style={{ padding: "20px", maxWidth: "600px", margin: "0 auto" }}>
-      {/* 🟢 SECTION 1: SELECT DEVICE */}
-      <div style={{ marginBottom: "20px", textAlign: "left" }}>
-        <label>
-          <strong>Select Scanner to Manage:</strong>
-        </label>
-        <select
-          value={selectedScanner}
-          onChange={(e) => setSelectedScanner(e.target.value)}
-          style={{
-            width: "100%",
-            padding: "10px",
-            marginTop: "5px",
-            fontSize: "16px",
-          }}
-        >
-          {scanners.map((s) => (
-            <option key={s} value={s}>
-              {s}
-            </option>
-          ))}
-        </select>
+    <div className="mb-4">
+      {/* Scanner Selection Card */}
+      <div className="card shadow-sm mb-4" style={{
+        borderRadius: '16px',
+        border: 'none',
+        background: 'linear-gradient(135deg, #8b5cf6dd 0%, #8b5cf6 100%)',
+        color: '#ffffff'
+      }}>
+        <div className="card-body">
+          <h6 className="card-subtitle mb-3" style={{
+            color: 'rgba(255, 255, 255, 0.8)',
+            fontSize: '11px',
+            fontWeight: '600',
+            textTransform: 'uppercase',
+            letterSpacing: '0.5px',
+            margin: '0 0 10px 0'
+          }}>
+            📡 Select Scanner
+          </h6>
+          <select
+            value={selectedScanner}
+            onChange={(e) => setSelectedScanner(e.target.value)}
+            className="form-select"
+            style={{
+              borderRadius: '8px',
+              border: 'none',
+              padding: '10px 12px',
+              fontSize: '15px',
+              backgroundColor: 'rgba(255, 255, 255, 0.95)',
+              color: '#1f2937'
+            }}
+          >
+            {scanners.map((s) => (
+              <option key={s} value={s}>
+                {s}
+              </option>
+            ))}
+          </select>
+        </div>
       </div>
 
-      <div style={{ display: "grid", gap: "20px" }}>
-        {/* 🔵 SECTION 2: INFRASTRUCTURE (Room Name) */}
-        <div style={cardStyle}>
-          <h3 style={{ marginTop: 0 }}>📍 Scanner Location</h3>
-          <p style={{ fontSize: "14px", color: "#666" }}>
-            Where is <strong>{selectedScanner}</strong> placed?
-          </p>
-          <div style={{ display: "flex", gap: "10px" }}>
-            <input
-              type="text"
-              placeholder="e.g. Kitchen, Lobby..."
-              value={roomName}
-              onChange={(e) => setRoomName(e.target.value)}
-              style={inputStyle}
-            />
-            <button
-              // 🧠 LOGIC: This button sends ONLY roomName
-              onClick={() => sendUpdate({ roomName: roomName })}
-              style={btnStyle}
-            >
-              Update Location
-            </button>
+      {/* Configuration Cards Grid */}
+      <div className="row g-3">
+        {/* Scanner Location Card */}
+        <div className="col-lg-6">
+          <div className="card shadow-sm h-100" style={{
+            borderRadius: '16px',
+            border: 'none',
+            background: 'linear-gradient(135deg, #f97316dd 0%, #f97316 100%)',
+            color: '#ffffff'
+          }}>
+            <div className="card-body">
+              <h5 className="card-title mb-2" style={{
+                fontSize: '16px',
+                fontWeight: '700',
+                margin: 0
+              }}>
+                📍 Scanner Location
+              </h5>
+              <p className="card-text mb-3" style={{
+                fontSize: '13px',
+                color: 'rgba(255, 255, 255, 0.8)',
+                margin: 0
+              }}>
+                Where is <strong>{selectedScanner}</strong> placed?
+              </p>
+              <div className="input-group">
+                <input
+                  type="text"
+                  className="form-control"
+                  placeholder="e.g. Kitchen, Lobby..."
+                  value={roomName}
+                  onChange={(e) => setRoomName(e.target.value)}
+                  style={{
+                    borderRadius: '8px 0 0 8px',
+                    border: 'none',
+                    padding: '10px 12px'
+                  }}
+                />
+                <button
+                  className="btn"
+                  onClick={() => sendUpdate({ roomName: roomName })}
+                  style={{
+                    borderRadius: '0 8px 8px 0',
+                    backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                    color: '#f97316',
+                    border: 'none',
+                    fontWeight: '600',
+                    cursor: 'pointer'
+                  }}
+                >
+                  Update
+                </button>
+              </div>
+            </div>
           </div>
         </div>
 
-        {/* 🟣 SECTION 3: ASSET TRACKING (Target UUID) */}
-        <div style={cardStyle}>
-          <h3 style={{ marginTop: 0 }}>🎯 Target Asset</h3>
-          <p style={{ fontSize: "14px", color: "#666" }}>
-            What UUID should <strong>{selectedScanner}</strong> look for?
-          </p>
-          <div style={{ display: "flex", gap: "10px" }}>
-            {/* <input
-              type="text"
-              placeholder="e.g. Bag, Keys, Phone..."
-              value={targetUUID}
-              onChange={(e) => setTargetUUID(e.target.value)}
-              style={inputStyle}
-            /> */}
-            <select
-              value={targetUUID}
-              onChange={(e) => setTargetUUID(e.target.value)}
-              style={inputStyle}
-              className="form-select"
-            >
-              <option value="">-- Select Asset UUID --</option>
-              {assets.map((asset) => (
-                <option key={asset.AssetUUID} value={asset.AssetUUID}>
-                  {asset.FriendlyName}
-                </option>
-              ))}
-            </select>
-            <button
-              // 🧠 LOGIC: This button sends ONLY targetUUID
-              onClick={() => sendUpdate({ targetUUID: targetUUID })}
-              style={btnStyle}
-            >
-              Update Target
-            </button>
+        {/* Target Asset Card */}
+        <div className="col-lg-6">
+          <div className="card shadow-sm h-100" style={{
+            borderRadius: '16px',
+            border: 'none',
+            background: 'linear-gradient(135deg, #06b6d4dd 0%, #06b6d4 100%)',
+            color: '#ffffff'
+          }}>
+            <div className="card-body">
+              <h5 className="card-title mb-2" style={{
+                fontSize: '16px',
+                fontWeight: '700',
+                margin: 0
+              }}>
+                🎯 Target Asset
+              </h5>
+              <p className="card-text mb-3" style={{
+                fontSize: '13px',
+                color: 'rgba(255, 255, 255, 0.8)',
+                margin: 0
+              }}>
+                What should <strong>{selectedScanner}</strong> track?
+              </p>
+              <div className="input-group">
+                <select
+                  value={targetUUID}
+                  onChange={(e) => setTargetUUID(e.target.value)}
+                  className="form-select"
+                  style={{
+                    borderRadius: '8px 0 0 8px',
+                    border: 'none',
+                    padding: '10px 12px',
+                    backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                    color: '#1f2937'
+                  }}
+                >
+                  <option value="">-- Select Asset --</option>
+                  {assets.map((asset) => (
+                    <option key={asset.AssetUUID} value={asset.AssetUUID}>
+                      {asset.FriendlyName}
+                    </option>
+                  ))}
+                </select>
+                <button
+                  className="btn"
+                  onClick={() => sendUpdate({ targetUUID: targetUUID })}
+                  style={{
+                    borderRadius: '0 8px 8px 0',
+                    backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                    color: '#06b6d4',
+                    border: 'none',
+                    fontWeight: '600',
+                    cursor: 'pointer'
+                  }}
+                >
+                  Update
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -144,28 +218,4 @@ function ScannerConfig({ apiUrl, assets }) {
   );
 }
 
-const cardStyle = {
-  border: "1px solid #ccc",
-  borderRadius: "8px",
-  padding: "15px",
-  backgroundColor: "#f9f9f9",
-  textAlign: "left",
-};
-
-const inputStyle = {
-  flex: 1,
-  padding: "8px",
-  borderRadius: "4px",
-  border: "1px solid #ddd",
-};
-
-const btnStyle = {
-  backgroundColor: "#007bff",
-  color: "white",
-  border: "none",
-  padding: "8px 16px",
-  borderRadius: "4px",
-  cursor: "pointer",
-  fontWeight: "bold",
-};
 export default ScannerConfig;

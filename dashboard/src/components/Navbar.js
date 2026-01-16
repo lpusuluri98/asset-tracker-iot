@@ -13,7 +13,7 @@ function Navbar() {
         boxShadow: "0 8px 32px rgba(0, 0, 0, 0.2)",
         padding: "1rem 2rem",
         borderRadius: "0 0 20px 20px",
-        marginBottom: "2rem",
+        marginBottom: "0",
       }}
     >
       <div className="container-fluid">

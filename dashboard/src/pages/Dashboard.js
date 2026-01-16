@@ -31,44 +31,48 @@ function Dashboard({ assets }) {
   }, []);
 
   return (
-    <div className="App">
-      <h1>IoT Asset Tracker</h1>
+    <div
+      style={{
+        backgroundColor: "#f8fafc",
+        minHeight: "100vh",
+        padding: "2rem 1rem 0 1rem",
+      }}
+    >
+      <h1
+        className="mb-4"
+        style={{ color: "#1f2937", fontWeight: "700", fontSize: "2.5rem" }}
+      >
+        Dashboard
+      </h1>
 
       {/* 1. Dashboard View */}
-      <div
-        className="metrics"
-        style={{
-          display: "flex",
-          justifyContent: "center",
-          flexWrap: "wrap",
-          gap: "20px",
-          marginBottom: "40px",
-        }}
-      >
+      <div className="d-flex flex-wrap gap-3 justify-content-center mb-5">
         <StatCard
           title="Office Motion"
           value={roomStatus}
-          color={roomStatus === "Motion Detected" ? "red" : "blue"}
+          color={roomStatus === "Motion Detected" ? "red" : "cyan"}
         />
         {assets.map((asset) => (
           <StatCard
             title={`${asset.FriendlyName} Location`}
             key={asset.AssetUUID}
             value={assetLocation}
+            color={
+              asset.FriendlyName === assets[0]?.FriendlyName
+                ? "orange"
+                : "yellow"
+            }
           />
-          // {/* <button onClick={()=>{setRoomStatus(roomStatus === 'No Motion' ? 'Motion Detected' : 'No Motion')}}>Toggle Motion Status</button> */}
-          // {/* <button onClick={()=>{setAssetLocation(assetLocation === "Searching..." ? "Located at (12.34, 56.78)" : "Searching...")}}>Toggle Asset Location</button> */}
-          // {/* <MotionSensor /> */}
         ))}
       </div>
+
       {/* 2. The Control Panel (Imported Component) */}
-      <div
-        style={{
-          maxWidth: "800px",
-          margin: "0 auto",
-        }}
-      >
-        <ScannerConfig apiUrl={API_URL} assets={assets} />
+      <div className="container-lg">
+        <div className="row justify-content-center">
+          <div className="col-lg-8">
+            <ScannerConfig apiUrl={API_URL} assets={assets} />
+          </div>
+        </div>
       </div>
     </div>
   );
