@@ -7,10 +7,8 @@ function Navbar() {
     <nav
       className="navbar navbar-expand-lg"
       style={{
-        background: "rgba(26, 41, 66, 0.8)",
-        backdropFilter: "blur(10px)",
-        borderBottom: "1px solid rgba(241, 245, 249, 0.1)",
-        boxShadow: "0 8px 32px rgba(0, 0, 0, 0.2)",
+        background: "linear-gradient(90deg, #8b5cf6 0%, #06b6d4 100%)",
+        boxShadow: "0 8px 32px rgba(139, 92, 246, 0.3)",
         padding: "1rem 2rem",
         borderRadius: "0 0 20px 20px",
         marginBottom: "0",
@@ -64,21 +62,24 @@ function Navbar() {
                 style={{
                   fontSize: "1rem",
                   fontWeight: location.pathname === "/" ? "700" : "500",
-                  color: location.pathname === "/" ? "#f59e0b" : "#94a3b8",
+                  color:
+                    location.pathname === "/"
+                      ? "#fbbf24"
+                      : "rgba(255, 255, 255, 0.85)",
                   paddingBottom: "6px",
                   borderBottom:
-                    location.pathname === "/" ? "3px solid #f59e0b" : "none",
+                    location.pathname === "/" ? "3px solid #fbbf24" : "none",
                   transition: "all 0.3s ease",
                   cursor: "pointer",
                 }}
                 onMouseEnter={(e) => {
                   if (location.pathname !== "/") {
-                    e.currentTarget.style.color = "#cbd5e1";
+                    e.currentTarget.style.color = "#ffffff";
                   }
                 }}
                 onMouseLeave={(e) => {
                   if (location.pathname !== "/") {
-                    e.currentTarget.style.color = "#94a3b8";
+                    e.currentTarget.style.color = "rgba(255, 255, 255, 0.85)";
                   }
                 }}
               >
@@ -93,23 +94,25 @@ function Navbar() {
                   fontSize: "1rem",
                   fontWeight: location.pathname === "/assets" ? "700" : "500",
                   color:
-                    location.pathname === "/assets" ? "#f59e0b" : "#94a3b8",
+                    location.pathname === "/assets"
+                      ? "#fbbf24"
+                      : "rgba(255, 255, 255, 0.85)",
                   paddingBottom: "6px",
                   borderBottom:
                     location.pathname === "/assets"
-                      ? "3px solid #f59e0b"
+                      ? "3px solid #fbbf24"
                       : "none",
                   transition: "all 0.3s ease",
                   cursor: "pointer",
                 }}
                 onMouseEnter={(e) => {
                   if (location.pathname !== "/assets") {
-                    e.currentTarget.style.color = "#cbd5e1";
+                    e.currentTarget.style.color = "#ffffff";
                   }
                 }}
                 onMouseLeave={(e) => {
                   if (location.pathname !== "/assets") {
-                    e.currentTarget.style.color = "#94a3b8";
+                    e.currentTarget.style.color = "rgba(255, 255, 255, 0.85)";
                   }
                 }}
               >
