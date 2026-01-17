@@ -119,6 +119,39 @@ function Navbar() {
                 📦 Assets
               </Link>
             </li>
+            <li className="nav-item">
+              <Link
+                className="nav-link"
+                to="/scanner"
+                style={{
+                  fontSize: "1rem",
+                  fontWeight: location.pathname === "/scanner" ? "700" : "500",
+                  color:
+                    location.pathname === "/scanner"
+                      ? "#fbbf24"
+                      : "rgba(255, 255, 255, 0.85)",
+                  paddingBottom: "6px",
+                  borderBottom:
+                    location.pathname === "/scanner"
+                      ? "3px solid #fbbf24"
+                      : "none",
+                  transition: "all 0.3s ease",
+                  cursor: "pointer",
+                }}
+                onMouseEnter={(e) => {
+                  if (location.pathname !== "/scanner") {
+                    e.currentTarget.style.color = "#ffffff";
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (location.pathname !== "/scanner") {
+                    e.currentTarget.style.color = "rgba(255, 255, 255, 0.85)";
+                  }
+                }}
+              >
+                🔍 Scanner
+              </Link>
+            </li>
           </ul>
         </div>
       </div>
