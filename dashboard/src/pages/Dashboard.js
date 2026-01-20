@@ -5,19 +5,18 @@ import MotionSensor from "../components/MotionSensor";
 import { API_URL } from "../config";
 
 function Dashboard({ assets }) {
-  const [roomStatus, setRoomStatus] = useState("No Motion");
-  const [assetLocation, setAssetLocation] = useState("Searching...");
+  const [rooms, setRooms] = useState([]);
+  const [assetLocations, setAssetLocations] = useState([]);
   async function fetchData() {
     try {
       const response = await fetch(API_URL);
       const data = await response.json();
       console.log(data);
-      if (data.motion === true) {
-        setRoomStatus("Motion Detected");
-      } else {
-        setRoomStatus("No Motion");
-      }
-      setAssetLocation(data.room || "Unknown");
+      console.log("Fetched dashboard assets: ", assets);
+      const parsedData =
+        typeof data.body === "string" ? JSON.parse(data.body) : data;
+      setRooms(parsedData.rooms || []);
+      setAssetLocations(parsedData.assetLocations || []);
     } catch (err) {
       console.error("Error fetching data: ", err);
     }
@@ -37,23 +36,27 @@ function Dashboard({ assets }) {
 
       {/* 1. Dashboard View */}
       <div className="d-flex flex-wrap gap-3 justify-content-center mb-5">
-        <StatCard
-          title="Office Motion"
-          value={roomStatus}
-          color={roomStatus === "Motion Detected" ? "red" : "cyan"}
-        />
-        {assets.map((asset) => (
+        {rooms.map((room) => (
           <StatCard
-            title={`${asset.FriendlyName} Location`}
-            key={asset.AssetUUID}
-            value={assetLocation}
-            color={
-              asset.FriendlyName === assets[0]?.FriendlyName
-                ? "orange"
-                : "yellow"
-            }
+            title={room.RoomID}
+            key={room.RoomID}
+            value={room.MotionDetected ? "Motion Detected" : "No Motion"}
+            color={room.MotionDetected ? "red" : "cyan"}
           />
         ))}
+        {assets.map((asset, index) => {
+          const assetLocation = assetLocations.find(
+            (loc) => loc.AssetID === asset.AssetUUID,
+          );
+          return (
+            <StatCard
+              title={`${asset.FriendlyName} Location`}
+              key={asset.AssetID}
+              value={assetLocation ? assetLocation.Location : "Searching..."}
+              color={index === 0 ? "orange" : "yellow"}
+            />
+          );
+        })}
       </div>
     </div>
   );
