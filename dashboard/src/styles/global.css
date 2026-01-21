@@ -140,6 +140,13 @@
    STAT CARDS
    ========================================*/
 
+.section-card {
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  background-color: var(--color-bg-white);
+  padding: var(--spacing-lg);
+  transition: all var(--transition-base);
+}
 .stat-card {
   width: 280px;
   padding: var(--spacing-xl);

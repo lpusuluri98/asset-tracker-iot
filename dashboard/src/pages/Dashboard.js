@@ -29,34 +29,46 @@ function Dashboard({ assets }) {
   }, []);
 
   return (
-    <div className="page-container">
-      <div className="page-header">
-        <h1>Dashboard</h1>
-      </div>
+    <div className="content-wrapper">
+      <div className="page-container">
+        <div className="page-header">
+          <h1>Dashboard</h1>
+        </div>
 
-      {/* 1. Dashboard View */}
-      <div className="d-flex flex-wrap gap-3 justify-content-center mb-5">
-        {rooms.map((room) => (
-          <StatCard
-            title={room.RoomID}
-            key={room.RoomID}
-            value={room.MotionDetected ? "Motion Detected" : "No Motion"}
-            color={room.MotionDetected ? "red" : "cyan"}
-          />
-        ))}
-        {assets.map((asset, index) => {
-          const assetLocation = assetLocations.find(
-            (loc) => loc.AssetID === asset.AssetUUID,
-          );
-          return (
-            <StatCard
-              title={`${asset.FriendlyName} Location`}
-              key={asset.AssetID}
-              value={assetLocation ? assetLocation.Location : "Searching..."}
-              color={index === 0 ? "orange" : "yellow"}
-            />
-          );
-        })}
+        {/* 1. Dashboard View */}
+        <div className="section-card card-base flex-wrap gap-3 justify-content-center mb-5">
+          <h3 className="mb-4">Room Status</h3>
+          <div className="d-flex flex-wrap gap-3 justify-content-center mb-5">
+            {rooms.map((room) => (
+              <StatCard
+                title={room.RoomID}
+                key={room.RoomID}
+                value={room.MotionDetected ? "Motion Detected" : "No Motion"}
+                color={room.MotionDetected ? "red" : "cyan"}
+              />
+            ))}
+          </div>
+        </div>
+        <div className="section-card card-base flex-wrap gap-3 justify-content-center mb-5">
+          <h3 className="mb-4">Motion Sensors</h3>
+          <div className="d-flex flex-wrap gap-3 justify-content-center mb-5">
+            {assets.map((asset, index) => {
+              const assetLocation = assetLocations.find(
+                (loc) => loc.AssetID === asset.AssetUUID,
+              );
+              return (
+                <StatCard
+                  title={`${asset.FriendlyName} Location`}
+                  key={asset.AssetID}
+                  value={
+                    assetLocation ? assetLocation.Location : "Searching..."
+                  }
+                  color={index === 0 ? "orange" : "yellow"}
+                />
+              );
+            })}
+          </div>
+        </div>
       </div>
     </div>
   );

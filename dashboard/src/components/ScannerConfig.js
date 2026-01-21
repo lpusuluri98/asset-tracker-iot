@@ -82,9 +82,9 @@ function ScannerConfig({ apiUrl, assets }) {
           <select
             value={selectedScanner}
             onChange={(e) => setSelectedScanner(e.target.value)}
-            className="form-select"
+            className="form-select border-0"
             style={{
-              borderRadius: "8px",
+              borderRadius: "30px",
               border: "none",
               padding: "10px 12px",
               fontSize: "15px",

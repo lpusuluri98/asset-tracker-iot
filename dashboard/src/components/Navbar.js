@@ -5,7 +5,7 @@ function Navbar() {
 
   return (
     <nav
-      className="navbar navbar-expand-lg"
+      className="navbar navbar-expand-lg sticky-top"
       style={{
         background: "linear-gradient(90deg, #8b5cf6 0%, #06b6d4 100%)",
         boxShadow: "0 8px 32px rgba(139, 92, 246, 0.3)",
