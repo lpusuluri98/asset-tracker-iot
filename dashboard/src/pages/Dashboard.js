@@ -31,8 +31,9 @@ function Dashboard({ assets }) {
   return (
     <div className="content-wrapper">
       <div className="page-container">
-        <div className="page-header">
-          <h1>Dashboard</h1>
+        <div className="page-header-card">
+          <h1>📊 Dashboard</h1>
+          <p>Real-time room status and asset locations</p>
         </div>
 
         {/* 1. Dashboard View */}

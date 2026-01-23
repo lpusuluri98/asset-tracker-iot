@@ -4,8 +4,9 @@ import ScannerConfig from "../components/ScannerConfig";
 function ScannerManagement({ apiUrl, assets }) {
   return (
     <div className="page-container">
-      <div className="page-header">
-        <h1>Scanner Management</h1>
+      <div className="page-header-card">
+        <h1>🔍 Scanner Management</h1>
+        <p>Configure and manage your IoT scanners</p>
       </div>
 
       <div className="container-lg">

@@ -60,12 +60,10 @@ function AssetManager({ assets, setAssets }) {
       }}
     >
       {/* Page Header */}
-      <h1
-        className="mb-4"
-        style={{ color: "#1f2937", fontWeight: "700", fontSize: "2.5rem" }}
-      >
-        Asset Manager
-      </h1>
+      <div className="page-header-card">
+        <h1>📦 Asset Manager</h1>
+        <p>Add and manage your IoT assets</p>
+      </div>
 
       <div className="row">
         {/* Add Asset Form Card */}

@@ -203,7 +203,7 @@ function ScannerConfig({ apiUrl, assets }) {
                 <select
                   value={targetUUID}
                   onChange={(e) => setTargetUUID(e.target.value)}
-                  className="form-select"
+                  className="form-select border-0"
                   style={{
                     borderRadius: "8px 0 0 8px",
                     border: "none",
