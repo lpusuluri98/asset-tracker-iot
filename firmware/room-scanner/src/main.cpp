@@ -33,7 +33,7 @@ struct ScannerData {
 };
 
 static ScannerData scannerData;
-StaticJsonDocument<50> payload;
+StaticJsonDocument<100> payload;
 StaticJsonDocument<1024> uuid_payload;
 WiFiClientSecure net;
 PubSubClient mqttClient(net);
@@ -73,7 +73,7 @@ void setup() {
     Serial.println("ERROR: Failed to create MQTT task");
   }
   
-  if (xTaskCreatePinnedToCore(vPIRTask, "PIR Task", 1024, NULL, 2, NULL, 1) != pdPASS) {
+  if (xTaskCreatePinnedToCore(vPIRTask, "PIR Task", 1500, NULL, 2, NULL, 1) != pdPASS) {
     Serial.println("ERROR: Failed to create PIR task");
   }
   
@@ -95,7 +95,8 @@ void vPIRTask(void *pvParameters){
       scannerData.motionDetected = motionState;
       xSemaphoreGive(scannerMutex);
     }
-    vTaskDelay(100 / portTICK_PERIOD_MS);
+    Serial.printf("Free heap: %u\n", ESP.getFreeHeap());
+    vTaskDelay(1500 / portTICK_PERIOD_MS);
   }
 }
 
