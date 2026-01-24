@@ -32,7 +32,7 @@ function AssetManager({ assets, setAssets }) {
           //     );
           setAssets((prevAssets) => {
             const existingIndex = prevAssets.findIndex(
-              (asset) => asset.AssetUUID === payload.AssetUUID
+              (asset) => asset.AssetUUID === payload.AssetUUID,
             );
             if (existingIndex >= 0) {
               const newList = [...prevAssets];
