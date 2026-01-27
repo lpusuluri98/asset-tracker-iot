@@ -12,7 +12,7 @@
 #define PIR_PIN 13
 #define UUID_LENGTH 36
 #define ROOM_NAME_LENGTH 20
-#define BLE_SCAN_DURATION 5
+#define BLE_SCAN_DURATION 3
 #define BLE_SCAN_INTERVAL 2000
 #define BLE_SCAN_WINDOW 500
 #define MQTT_PUBLISH_INTERVAL 10000
@@ -22,6 +22,7 @@ void vBLEScanTask(void *pvParameters);
 void vPIRTask(void *pvParameters);
 void vSendDataTask(void *pvParameters);
 void vMqttTask(void* pvParameters);
+void vHeartbeatTask(void *pvParameters);
 
 static SemaphoreHandle_t scannerMutex;
 static SemaphoreHandle_t uuidMutex;
@@ -62,7 +63,7 @@ void setup() {
   net.setCertificate(AWS_CERT_CRT);
   net.setPrivateKey(AWS_CERT_PRIVATE);
   mqttClient.setClient(net);
-  mqttClient.setBufferSize(4096);
+  mqttClient.setBufferSize(1024);
   pinMode(PIR_PIN, INPUT);
   
   if (xTaskCreatePinnedToCore(vBLEScanTask, "BLE Scan Task", 2248, NULL, 1, &bleTaskHandle, 0) != pdPASS) {
@@ -79,6 +80,10 @@ void setup() {
   
   if (xTaskCreatePinnedToCore(vSendDataTask, "Send Data Task", 1024, NULL, 1, NULL, 1) != pdPASS) {
     Serial.println("ERROR: Failed to create Send Data task");
+  }
+  
+  if (xTaskCreatePinnedToCore(vHeartbeatTask, "Heartbeat", 2048, NULL, 0, NULL, 1) != pdPASS) {
+    Serial.println("ERROR: Failed to create Heartbeat task");
   }
 
   vTaskDelete(NULL);
@@ -144,9 +149,20 @@ void vBLEScanTask(void *pvParameters) {
   
   // Wait for MQTT connection before initializing BLE to conserve memory
   ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
-  Serial.println("MQTT connected, initializing BLE...");
+  Serial.println("MQTT connected, waiting for heap to stabilize...");
+  
+  // Wait for heap to stabilize before BLE init
+  vTaskDelay(3000 / portTICK_PERIOD_MS);
+  
+  uint32_t heapBefore = ESP.getFreeHeap();
+  Serial.printf("Initializing BLE with %u bytes free\n", heapBefore);
   
   BLEDevice::init(SCANNER);
+  
+  uint32_t heapAfter = ESP.getFreeHeap();
+  Serial.printf("BLE initialized, heap used: %u bytes, remaining: %u bytes\n", 
+                heapBefore - heapAfter, heapAfter);
+  
   BLEScan* pBLEScan = BLEDevice::getScan();
   MyAdvertisedDeviceCallbacks callback;
   pBLEScan->setAdvertisedDeviceCallbacks(&callback);
@@ -157,7 +173,7 @@ void vBLEScanTask(void *pvParameters) {
   for(;;){
     pBLEScan->start(BLE_SCAN_DURATION, false);
     pBLEScan->clearResults();
-    vTaskDelay(3000 / portTICK_PERIOD_MS);
+    vTaskDelay(5000 / portTICK_PERIOD_MS);  // Wait 5 seconds between scans to free memory
   }
 }
 
@@ -266,7 +282,7 @@ void vMqttTask(void* pvParameters) {
     timeout++;
   }
   Serial.println("WiFi connected");
-  mqttClient.setBufferSize(2048);
+  mqttClient.setBufferSize(1024);
 
   mqttClient.setServer(MQTT_HOST, 8883);
   mqttClient.setCallback(mqttCallback);
@@ -357,6 +373,14 @@ void vMqttTask(void* pvParameters) {
     }
     
     vTaskDelay(100 / portTICK_PERIOD_MS);
+  }
+}
+
+void vHeartbeatTask(void *pvParameters) {
+  for(;;) {
+    Serial.printf("[HEARTBEAT] Heap: %u bytes, Tasks: %d\n", 
+                  ESP.getFreeHeap(), uxTaskGetNumberOfTasks());
+    vTaskDelay(2000 / portTICK_PERIOD_MS);
   }
 }
 // put function definitions here:

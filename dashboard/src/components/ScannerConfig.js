@@ -55,6 +55,90 @@ function ScannerConfig({ apiUrl, assets }) {
   }
   return (
     <div className="mb-4">
+      {/* Scanner Cards Grid */}
+      <div className="mb-5">
+        <h6
+          style={{
+            fontSize: "12px",
+            fontWeight: "600",
+            textTransform: "uppercase",
+            letterSpacing: "0.5px",
+            color: "#6b7280",
+            marginBottom: "1rem",
+          }}
+        >
+          📡 Available Scanners
+        </h6>
+        <div className="row g-3">
+          {scanners.map((scanner, index) => {
+            const colors = [
+              "#8b5cf6",
+              "#f97316",
+              "#06b6d4",
+              "#fbbf24",
+              "#ef4444",
+            ];
+            const bgColor = colors[index % colors.length];
+            const isSelected = selectedScanner === scanner;
+
+            return (
+              <div key={scanner} className="col-lg-4 col-md-6">
+                <div
+                  onClick={() => setSelectedScanner(scanner)}
+                  style={{
+                    borderRadius: "16px",
+                    border: isSelected
+                      ? `3px solid ${bgColor}`
+                      : "2px solid rgba(0, 0, 0, 0.1)",
+                    background: `linear-gradient(135deg, ${bgColor}dd 0%, ${bgColor} 100%)`,
+                    color: "#ffffff",
+                    padding: "1.5rem",
+                    cursor: "pointer",
+                    transition: "all 0.3s ease",
+                    transform: isSelected ? "scale(1.05)" : "scale(1)",
+                    boxShadow: isSelected
+                      ? `0 8px 32px ${bgColor}40`
+                      : "0 4px 15px rgba(0, 0, 0, 0.1)",
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.transform = "translateY(-4px)";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.transform = isSelected
+                      ? "scale(1.05)"
+                      : "scale(1)";
+                  }}
+                >
+                  <div
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "0.75rem",
+                      marginBottom: "0.5rem",
+                    }}
+                  >
+                    <span style={{ fontSize: "1.5rem" }}>🔌</span>
+                    <h5
+                      style={{ margin: 0, fontSize: "1rem", fontWeight: "700" }}
+                    >
+                      {scanner}
+                    </h5>
+                  </div>
+                  <p
+                    style={{
+                      margin: 0,
+                      fontSize: "0.875rem",
+                      color: "rgba(255, 255, 255, 0.8)",
+                    }}
+                  >
+                    {isSelected ? "✓ Selected" : "Click to select"}
+                  </p>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
       {/* Scanner Selection Card */}
       <div
         className="card shadow-sm mb-4"
